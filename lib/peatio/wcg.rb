@@ -1,7 +1,10 @@
-require "peatio/wcg/version"
+require 'peatio/services/blockchain_service/wcg'
+require 'peatio/services/wallet_service/wcg'
+require 'peatio/client/blockchain_client/wcg'
+require 'peatio/client/wallet_client/wcg'
 
 module Peatio
   module Wcg
-    # Your code goes here...
+    require "peatio/wcg/version"
   end
 end

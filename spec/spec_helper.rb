@@ -1,4 +1,5 @@
 require "bundler/setup"
+require "peatio"
 require "peatio/wcg"
 
 RSpec.configure do |config|
