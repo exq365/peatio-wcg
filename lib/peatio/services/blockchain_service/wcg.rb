@@ -46,13 +46,22 @@ module BlockchainService
           .fetch('transactions')
           .each_with_object([]) do |tx, deposits|
 
-        next if client.invalid_transaction?(tx, currency) # skip if invalid transaction
+        next if client.invalid_transaction?(tx) # skip if invalid transaction
 
         payment_addresses_where(address: client.to_address(tx)) do |payment_address|
 
           deposit_txs = client.build_transaction(tx, block_id, payment_address.currency)
 
           deposit_txs.fetch(:entries).each_with_index do |entry, i|
+
+            if entry[:amount] <= payment_address.currency.min_deposit_amount
+              # Currently we just skip small deposits. Custom behavior will be implemented later.
+              Rails.logger.info do  "Skipped deposit with txid: #{deposit_txs[:id]} with amount: #{entry[:amount]}"\
+                                     " from #{entry[:address]} in block number #{deposit_txs[:block_number]}"
+              end
+              next
+            end
+
             deposits << { txid:           deposit_txs[:id],
                           address:        entry[:address],
                           amount:         entry[:amount],
@@ -70,7 +79,7 @@ module BlockchainService
           .fetch('transactions')
           .each_with_object([]) do |tx, withdrawals|
 
-        next if client.invalid_transaction?(tx, currency) # skip if invalid transaction
+        next if client.invalid_transaction?(tx) # skip if invalid transaction
 
         Withdraws::Coin
             .where(currency: currencies)
@@ -102,10 +111,6 @@ module BlockchainService
 
       # Store processed tx ids from mempool.
       Rails.cache.write("processed_#{self.class.name.underscore}_mempool_txids", txns)
-    end
-
-    def currency
-      @currency ||= Currency.find(:wcg)
     end
   end
 end
