@@ -77,7 +77,7 @@ module BlockchainClient
       end
       response.assert_success!
       response = JSON.parse(response.body)
-      response['errorDescription'].tap { |error| raise Error, error.inspect if error }
+      response['errorDescription'].tap { |error| raise Peatio::BlockchainClient::Error, error.inspect if error }
       response
     end
 
