@@ -36,6 +36,10 @@ module BlockchainClient
       json_rpc({ requestType: 'getTransaction', transaction: txid})
     end
 
+    def get_phasing_poll(txid)
+      json_rpc({requestType: 'getPhasingPoll', transaction: txid }).fetch('approved', nil)
+    end
+
     def build_transaction(tx, current_block, currency)
       if tx['type'] == 2
         build_asset_transaction(tx, current_block, currency)
@@ -91,7 +95,8 @@ module BlockchainClient
       entries = []  unless currency.code.wcg?
       { id:            normalize_txid(tx.fetch('transaction')),
         block_number:  current_block,
-        entries: entries
+        options:       { phased: tx.fetch('phased') },
+        entries:       entries
       }
     end
 
@@ -105,7 +110,8 @@ module BlockchainClient
       entries = []  if currency.token_asset_id != tx['attachment']['asset']
       { id:            normalize_txid(tx.fetch('transaction')),
         block_number:  current_block,
-        entries: entries
+        options:       { phased: tx.fetch('phased') },
+        entries:       entries
       }
     end
   end
