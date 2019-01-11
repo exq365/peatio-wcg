@@ -55,6 +55,7 @@ module WalletService
       spread_hash.map do |address, amount|
 
         amount *= deposit.currency.base_factor
+        amount -= default_fee
 
         client.create_coin_withdrawal!(
             { address: pa.address, secret: pa.secret },
