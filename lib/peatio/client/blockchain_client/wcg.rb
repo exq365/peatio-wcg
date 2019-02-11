@@ -2,7 +2,10 @@
 # frozen_string_literal: true
 
 module BlockchainClient
-  class Wcg < Peatio::BlockchainClient::Base
+  class Wcg
+
+    include Peatio::BlockchainClient::Helpers
+
     def initialize(*)
       super
       @json_rpc_call_id  = 0
