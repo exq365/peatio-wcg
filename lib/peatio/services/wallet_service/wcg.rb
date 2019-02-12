@@ -1,14 +1,21 @@
 # encoding: UTF-8
 # frozen_string_literal: true
 
-module WalletService
-  class Wcg < Peatio::WalletService::Base
+class WalletServiceWcg < Peatio::WalletService::Abstract
+
+    DEFAULT_FEE = 1000000
+
+    include Peatio::WalletService::Helpers
+
+    def client
+      @client ||= WalletClientWcg.new(@wallet)
+    end
 
     def create_address(options = {})
       @client.create_address!(options)
     end
 
-    def collect_deposit!(deposit, options={})
+    def collect_deposit!(deposit, options = {})
       if deposit.currency.is_token_asset?
         collect_asset_deposit(deposit, options)
       else
@@ -24,23 +31,19 @@ module WalletService
       end
     end
 
-    def deposit_collection_fees(deposit, options={})
+    def deposit_collection_fees(deposit, options = {})
       fees_wallet = txn_fees_wallet
       destination_address = deposit.account.payment_address.address
 
       client.create_coin_withdrawal!(
-          { address: fees_wallet.address, secret: fees_wallet.secret },
-          { address: destination_address },
-          default_fee,
+          {address: fees_wallet.address, secret: fees_wallet.secret},
+          {address: destination_address},
+          DEFAULT_FEE,
           options
       )
     end
 
     private
-
-    def default_fee
-      1000000
-    end
 
     def txn_fees_wallet
       Wallet
@@ -48,33 +51,33 @@ module WalletService
           .find_by(currency_id: :wcg, kind: :fee)
     end
 
-    def collect_coin_deposit(deposit, options={})
+    def collect_coin_deposit(deposit, options = {})
       pa = deposit.account.payment_address
 
       spread_hash = spread_deposit(deposit)
       spread_hash.map do |address, amount|
 
         amount *= deposit.currency.base_factor
-        amount -= default_fee
+        amount -= DEFAULT_FEE
 
         client.create_coin_withdrawal!(
-            { address: pa.address, secret: pa.secret },
-            { address: address },
+            {address: pa.address, secret: pa.secret},
+            {address: address},
             amount.to_i,
             options
         )
       end
     end
 
-    def collect_asset_deposit(deposit, options={})
+    def collect_asset_deposit(deposit, options = {})
       pa = deposit.account.payment_address
 
       spread_hash = spread_deposit(deposit)
       spread_hash.map do |address, amount|
         amount *= deposit.currency.base_factor
         client.create_asset_withdrawal!(
-            { address: pa.address, secret: pa.secret },
-            { address: address },
+            {address: pa.address, secret: pa.secret},
+            {address: address},
             amount.to_i,
             options.merge(token_asset_id: deposit.currency.token_asset_id)
         )
@@ -83,8 +86,8 @@ module WalletService
 
     def build_coin_withdrawal(withdraw, options = {})
       client.create_coin_withdrawal!(
-          { address: wallet.address, secret: wallet.secret },
-          { address: withdraw.rid },
+          {address: wallet.address, secret: wallet.secret},
+          {address: withdraw.rid},
           withdraw.amount_to_base_unit!,
           options
       )
@@ -92,11 +95,10 @@ module WalletService
 
     def build_asset_withdrawal(withdraw, options = {})
       client.create_asset_withdrawal!(
-          { address: wallet.address, secret: wallet.secret },
-          { address: withdraw.rid },
+          {address: wallet.address, secret: wallet.secret},
+          {address: withdraw.rid},
           withdraw.amount_to_base_unit!,
           options.merge(token_asset_id: withdraw.currency.token_asset_id)
       )
     end
   end
-end

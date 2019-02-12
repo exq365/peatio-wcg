@@ -1,13 +1,11 @@
 # encoding: UTF-8
 # frozen_string_literal: true
 
-module BlockchainClient
-  class Wcg
+class BlockchainClientWcg
 
     include Peatio::BlockchainClient::Helpers
 
-    def initialize(*)
-      super
+    def initialize(blockchain)
       @json_rpc_call_id  = 0
       @json_rpc_endpoint = URI.parse(blockchain.server + "/wcg?")
     end
@@ -91,7 +89,6 @@ module BlockchainClient
         end
       end
     end
-    memoize :connection
 
     def json_rpc(params = {})
       response = connection.post do |req|
@@ -132,5 +129,5 @@ module BlockchainClient
         entries:       entries
       }
     end
-  end
 end
+
