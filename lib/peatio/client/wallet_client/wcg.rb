@@ -5,7 +5,7 @@ class WalletClientWcg
   extend Memoist
 
   def initialize(wallet)
-    super
+    @wallet = wallet
     @json_rpc_endpoint = URI.parse(wallet.uri + "/wcg?")
   end
 
@@ -44,7 +44,7 @@ class WalletClientWcg
     json_rpc(
         {
             requestType: 'transferAsset',
-            asset: wallet.currency.token_asset_id,
+            asset: @wallet.currency.token_asset_id,
             secretPhrase: issuer.fetch(:secret),
             recipient: normalize_address(recipient.fetch(:address)),
             quantityQNT: amount,
@@ -111,6 +111,11 @@ class WalletClientWcg
             broadcast: options.has_key?(:broadcast) ? options[:broadcast] : true
         }
     )
+  end
+
+
+  def convert_from_base_unit(value)
+    value.to_d / @wallet.currency.base_factor
   end
 end
 

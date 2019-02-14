@@ -80,6 +80,22 @@ class BlockchainClientWcg
       !valid_transaction?(tx)
     end
 
+    def supports_cash_addr_format?
+      false
+    end
+
+    def case_sensitive?
+      true
+    end
+
+    def normalize_address(address)
+      address.upcase
+    end
+
+    def normalize_txid(txid)
+      txid.downcase
+    end
+
     protected
 
     def connection
