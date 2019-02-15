@@ -1,11 +1,13 @@
 # encoding: UTF-8
 # frozen_string_literal: true
+require 'peatio/helpers/coin_helper'
 
 class WalletServiceWcg < Peatio::WalletService::Abstract
 
   DEFAULT_FEE = 1000000
 
   include Peatio::WalletService::Helpers
+  include Peatio::Wcg::CoinHelper
 
   def client
     @client ||= WalletClientWcg.new(@wallet)
@@ -16,7 +18,7 @@ class WalletServiceWcg < Peatio::WalletService::Abstract
   end
 
   def collect_deposit!(deposit, options = {})
-    if deposit.currency.is_token_asset?
+    if is_token_asset?(deposit.currency)
       collect_asset_deposit(deposit, options)
     else
       collect_coin_deposit(deposit, options)
@@ -24,7 +26,7 @@ class WalletServiceWcg < Peatio::WalletService::Abstract
   end
 
   def build_withdrawal!(withdraw, options = {})
-    if withdraw.currency.is_token_asset?
+    if is_token_asset?(withdraw.currency)
       build_asset_withdrawal(withdraw, options)
     else
       build_coin_withdrawal(withdraw, options)
@@ -51,8 +53,8 @@ class WalletServiceWcg < Peatio::WalletService::Abstract
 
   def txn_fees_wallet
     Wallet
-        .active
-        .find_by(currency_id: :wcg, kind: :fee)
+      .active
+      .find_by(currency_id: :wcg, kind: :fee)
   end
 
   def collect_coin_deposit(deposit, options = {})
@@ -83,7 +85,7 @@ class WalletServiceWcg < Peatio::WalletService::Abstract
           {address: pa.address, secret: pa.secret},
           {address: address},
           amount.to_i,
-          options.merge(token_asset_id: deposit.currency.token_asset_id)
+          options.merge(token_asset_id: token_asset_id(deposit.currency))
       )
     end
   end
@@ -102,7 +104,7 @@ class WalletServiceWcg < Peatio::WalletService::Abstract
         {address: @wallet.address, secret: @wallet.secret},
         {address: withdraw.rid},
         withdraw.amount_to_base_unit!,
-        options.merge(token_asset_id: withdraw.currency.token_asset_id)
+        options.merge(token_asset_id: token_asset_id(withdraw.currency))
     )
   end
 end

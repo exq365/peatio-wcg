@@ -2,6 +2,7 @@ require 'peatio/services/blockchain_service/wcg'
 require 'peatio/services/wallet_service/wcg'
 require 'peatio/client/blockchain_client/wcg'
 require 'peatio/client/wallet_client/wcg'
+require 'peatio/helpers/coin_helper'
 
 module Peatio
   module Wcg

@@ -1,9 +1,11 @@
 # encoding: UTF-8
 # frozen_string_literal: true
+require 'peatio/helpers/coin_helper'
 
 class BlockchainClientWcg
 
     include Peatio::BlockchainClient::Helpers
+    include Peatio::Wcg::CoinHelper
 
     def initialize(blockchain)
       @json_rpc_call_id  = 0
@@ -25,7 +27,7 @@ class BlockchainClientWcg
         json_rpc({
                      requestType: 'getAccountAssets',
                      account: normalize_address(address),
-                     asset: currency.token_asset_id})
+                     asset: token_asset_id(currency)})
             .fetch('quantityQNT')
             .yield_self { |amount| convert_from_base_unit(amount, currency) }
       else
@@ -138,7 +140,7 @@ class BlockchainClientWcg
               address: normalize_address(tx['recipientRS'])
           }
       ]
-      entries = []  if currency.token_asset_id != tx['attachment']['asset']
+      entries = []  if token_asset_id(currency) != tx['attachment']['asset']
       { id:            normalize_txid(tx.fetch('transaction')),
         block_number:  current_block,
         options:       { phased: tx.fetch('phased') },

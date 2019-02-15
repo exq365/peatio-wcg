@@ -1,8 +1,12 @@
 # encoding: UTF-8
 # frozen_string_literal: true
 
+require 'peatio/helpers/coin_helper'
+
 class WalletClientWcg
   extend Memoist
+
+  include Peatio::Wcg::CoinHelper
 
   def initialize(wallet)
     @wallet = wallet
@@ -19,11 +23,11 @@ class WalletClientWcg
   end
 
   def load_balance!(address, currency)
-    if currency.is_token_asset?
+    if is_token_asset?(currency)
       json_rpc({
                    requestType: 'getAccountAssets',
                    account: normalize_address(address),
-                   asset: currency.token_asset_id
+                   asset: token_asset_id(currency)
                })
           .fetch('quantityQNT')
           .yield_self {|amount| convert_from_base_unit(amount)}
@@ -44,7 +48,7 @@ class WalletClientWcg
     json_rpc(
         {
             requestType: 'transferAsset',
-            asset: @wallet.currency.token_asset_id,
+            asset: token_asset_id(@wallet.currency),
             secretPhrase: issuer.fetch(:secret),
             recipient: normalize_address(recipient.fetch(:address)),
             quantityQNT: amount,
